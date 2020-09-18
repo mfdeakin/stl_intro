@@ -72,6 +72,7 @@
   \end{itemize}
   Why use this instead of a C array?
   \begin{itemize}
+  \item Type safety!!!
   \item Automatic and correct pairing of the array and its size
     - if an std::array is passed as a parameter, you know how large it is, unlike with a C array
   \item Compatibility with for each loop syntax and standard algorithms
@@ -88,6 +89,12 @@
   \item Append time: $O(1)$ amortized; with an upper bound of $O(n)$
   \item Search time: $O(n)$
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{set and map}
+  set is a container for unique objects - inserting an element already in the set does nothing\\
+  map is a container which associates keys with values - a vector is a map with (non-negative) integer keys
 \end{frame}
 
 \begin{frame}
@@ -124,6 +131,15 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Balanced Binary Tree Operations}
+  Inserting an item:
+  \includegraphics[width=1.0\textwidth]{figures/binary_tree_insert.pdf}
+  Deleting an item:
+  \includegraphics[width=1.0\textwidth]{figures/binary_tree_delete.pdf}
+  {\tiny from Wikipedia: https://en.wikipedia.org/wiki/Binary\_search\_tree}
+\end{frame}
+
+\begin{frame}
   \frametitle{unordered\_map and unordered\_set datastructures}
   The unordered versions of map and set use a hash map with buckets to store their data.
   \begin{figure}[ht]
@@ -146,7 +162,7 @@
     \item Delete: $O(1)$
     \item Search: $O(1)$
   \end{itemize}
-
+  A good hash function and a table only 60-70\% filled will usually approximate constant time operations
 \end{frame}
 
 \begin{frame}
@@ -310,24 +326,6 @@ std::partial_sum(vec.begin(), vec.end(),
   exclusive\_scan also excludes the ith element from the ith application of the operator.
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Lambdas}
-  ie, inline functor definitions. A functor is an object which implements ``operator()(params...)''\\
-  Functors can be used with any of the std algorithms which take functions as arguments, such as the following
-
-  \begin{lstlisting}[language=C++]
-struct isEvenFunctor {
-  bool operator()(int i) {
-    return (i % 2) == 0;
-  }
-};
-
-isEvenFunctor functor;
-std::transform(intVector.begin(), intVector.end(),
-               isEvenVector.begin(), functor);
-  \end{lstlisting}
-\end{frame}
-
 \begin{frame}
   \frametitle{set\_intersection, set\_union, set\_difference, set\_symmetric\_difference}
   Computes the set operations on any sorted container, ie a sorted vector
@@ -358,6 +356,24 @@ std::vector<int> intersection;
 std::set_intersection(vec_1.begin(), vec_1.end(),
   vec_2.begin(), vec_2.end(),
   std::inserter(intersection, intersection.begin()));
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Lambdas}
+  ie, inline functor definitions. A functor is an object which implements ``operator()(params...)''\\
+  Functors can be used with any of the std algorithms which take functions as arguments, such as the following
+
+  \begin{lstlisting}[language=C++]
+struct isEvenFunctor {
+  bool operator()(int i) {
+    return (i % 2) == 0;
+  }
+};
+
+isEvenFunctor functor;
+std::transform(intVector.begin(), intVector.end(),
+               isEvenVector.begin(), functor);
   \end{lstlisting}
 \end{frame}
 
@@ -406,7 +422,7 @@ struct isEvenFunctor {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Bonus: ``Easy'' Parallelization}
+  \frametitle{``Easy'' Parallelization}
   Just include the ``execution'' header and specify either sequenced or unsequenced parallelism
   as the first argument!
   Assuming your standard library implementation supports it...
@@ -419,9 +435,30 @@ std::reduce(std::execution::par,
   my_container.begin(), my_container.end(),
   reduction_operator);
   \end{lstlisting}
-  Caveat emptor - this assumes your operator supports parallel execution.
+  Caveat emptor - this assumes your operator supports parallel execution, and you need to use the correct operation.\\
   Operators that perform side-effects will need to appropriately guard against race conditions\\
   nvidia HPC C++ compiler (formerly PGI C++ compiler) automatically runs these on the GPU with the appropriate compiler flag
 \end{frame}
+
+%% \begin{frame}[fragile]
+%%   \frametitle{Bonus: Recent/Near-Future Features}
+%%   \begin{itemize}
+%%   \item Concepts (C++20)\\
+%%     Express properties without template metaprogramming bs
+%%   \begin{lstlisting}[language=C++]
+%% template<typename T>
+%% concept Integral = std::is_integral<T>::value;
+%% template<typename T>
+%% class IntList : requires Integral(T) {...};
+%%   \end{lstlisting}
+%%   \item Ranges (C++20)\\
+%%     Correctly associate an iterator and a length
+%%   \item Zip Views (C++23?)
+%%   \begin{lstlisting}[language=C++]
+%% for(auto [v1, v2, v3] :
+%%   std::zip_view(range_1, range_2, range_3)) {...}
+%%   \end{lstlisting}
+%%   \end{itemize}
+%% \end{frame}
 
 \end{document}

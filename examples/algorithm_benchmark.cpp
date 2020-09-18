@@ -6,7 +6,39 @@
 #include <numeric>
 #include <random>
 
-constexpr size_t num_elems = 1 << 28;
+constexpr size_t num_elems = 1 << 26;
+
+static void for_each_bench(benchmark::State &state) {
+  std::vector<double> v;
+  for (size_t i = 0; i < num_elems; ++i) {
+    v.push_back(1.0 / i);
+  }
+  std::mt19937_64 rng((std::random_device())());
+  std::shuffle(v.begin(), v.end(), rng);
+
+  for (auto _ : state) {
+    std::for_each(v.begin(), v.end(), [](double &inp) {
+      inp = std::sqrt(inp * 3.14159265 + 2.718281828);
+    });
+  }
+}
+BENCHMARK(for_each_bench);
+
+static void for_each_par_bench(benchmark::State &state) {
+  std::vector<double> v;
+  for (size_t i = 0; i < num_elems; ++i) {
+    v.push_back(1.0 / i);
+  }
+  std::mt19937_64 rng((std::random_device())());
+  std::shuffle(v.begin(), v.end(), rng);
+
+  for (auto _ : state) {
+    std::for_each(std::execution::par, v.begin(), v.end(), [](double &inp) {
+      inp = std::sqrt(inp * 3.14159265 + 2.718281828);
+    });
+  }
+}
+BENCHMARK(for_each_par_bench);
 
 static void transform_bench(benchmark::State &state) {
   std::vector<double> v;

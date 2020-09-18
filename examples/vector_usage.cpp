@@ -1,7 +1,6 @@
 
 #include "vector.hpp"
 #include <gtest/gtest.h>
-#include <iostream>
 
 TEST(construct, Vector) {
   std::vector<std::string> v;
@@ -38,8 +37,10 @@ TEST(iterate, Vector) {
   for (size_t i = 0; i < num_tests; ++i) {
     v.push_back(std::to_string(i));
   }
+  size_t i = 0;
   for (std::string &s : v) {
-    std::cout << s << "\n";
+    ASSERT_EQ(i, std::stoul(s));
+    i++;
   }
 }
 
