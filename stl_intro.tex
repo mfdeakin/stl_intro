@@ -172,7 +172,7 @@
     \item {\bf sort, stable\_sort}
     \item {\bf find, find\_if, find\_if\_not}
     \item {\bf transform}
-    \item {\bf accumulate, reduce}
+    \item {\bf accumulate, reduce, transform\_reduce}
     \item {\bf partial\_sum, exclusive\_scan, inclusive\_scan}
     \item {\bf set\_intersection, set\_union, set\_difference, set\_symmetric\_difference}
     \item for\_each
@@ -233,6 +233,7 @@ auto itr = std::find_if_not(vec.begin(),
   storing the result in another container of the same size.
   Additionally provides a version which takes pairs of inputs from two containers,
   storing the result in a destination.\\
+  Functional languages generally call this ``map''\\
   $O(n)$ time complexity
 
   Example of a single input parameter transform:
@@ -301,7 +302,8 @@ Note the type of the inital value is important; it defines the type computed val
   - your operator needs to be associative.\\
   ie, accumulate on ${2.0, 5.0, 5.0}$ computes $((0.0 + 2.0) + 4.0) + 5.0$,
   but reduce might compute $(2.0 + (0.0 + 4.0)) + 5.0$ or $2.0 + (4.0 + (0.0 + 5.0))$\\
-  If the initial value is not provided, the default constructor of the type stored in the container will be used
+  If the initial value is not provided, the default constructor of the type stored in the container will be used\\
+  transform\_reduce applies a transformation function
   \begin{lstlisting}[language=C++]
 std::vector<double> vec{5.0, 6.0, -2.0};
 double sum = std::reduce(vec.begin(), vec.end());
@@ -310,10 +312,32 @@ double sum = std::reduce(vec.begin(), vec.end());
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{transform\_reduce}
+    transform\_reduce is reduce with a tranform applied before reduction.\\
+    transform\_reduce with two input iterators defaults to computing the dot-product of two (linear algebra) vectors
+  \begin{lstlisting}[language=C++]
+std::vector<std::string> vec{"5.0", "6.0", "-2.0"};
+double sum =
+    std::transform_reduce(vec.begin(), vec.end(),
+                          0.0, std::plus<>(),
+                          str_to_double);
+// sum = 9.0
+std::vector<double> v1{5.0, 6.0, -2.0};
+std::vector<double> v2{1.0, -5.0, 0.0};
+double dot_prod =
+    std::transform_reduce(v1.begin(), v1.end(),
+                          v2.begin(), 0.0);
+// dot_prod = -25.0
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{partial\_sum, exclusive\_scan, inclusive\_scan}
   partial\_sum takes a binary operation and applies it to the
   previously computed value and successive members of the container.\\
   partial\_sum stores intermediate results as the output\\
+  These algorithms default to summing the elements\\
+  Functional languages call this ``scan''\\
 
   \begin{lstlisting}[language=C++]
 std::vector<double> vec{5.0, 6.0, -2.0};
@@ -425,7 +449,7 @@ struct isEvenFunctor {
   \frametitle{``Easy'' Parallelization}
   Just include the ``execution'' header and specify either sequenced or unsequenced parallelism
   as the first argument!
-  Assuming your standard library implementation supports it...
+  Assuming your functor is thread safe and your standard library implementation supports it...
   \begin{lstlisting}[language=C++]
 #include <execution>
 ...
@@ -435,30 +459,31 @@ std::reduce(std::execution::par,
   my_container.begin(), my_container.end(),
   reduction_operator);
   \end{lstlisting}
-  Caveat emptor - this assumes your operator supports parallel execution, and you need to use the correct operation.\\
-  Operators that perform side-effects will need to appropriately guard against race conditions\\
-  nvidia HPC C++ compiler (formerly PGI C++ compiler) automatically runs these on the GPU with the appropriate compiler flag
 \end{frame}
 
-%% \begin{frame}[fragile]
-%%   \frametitle{Bonus: Recent/Near-Future Features}
-%%   \begin{itemize}
-%%   \item Concepts (C++20)\\
-%%     Express properties without template metaprogramming bs
+\begin{frame}[fragile]
+  \frametitle{Bonus: Recent/Near-Future Features}
+  \begin{itemize}
+  \item Concepts (C++20)\\
+    Express compile-time properties without template metaprogramming
 %%   \begin{lstlisting}[language=C++]
 %% template<typename T>
 %% concept Integral = std::is_integral<T>::value;
 %% template<typename T>
 %% class IntList : requires Integral(T) {...};
 %%   \end{lstlisting}
-%%   \item Ranges (C++20)\\
-%%     Correctly associate an iterator and a length
-%%   \item Zip Views (C++23?)
-%%   \begin{lstlisting}[language=C++]
-%% for(auto [v1, v2, v3] :
-%%   std::zip_view(range_1, range_2, range_3)) {...}
-%%   \end{lstlisting}
-%%   \end{itemize}
-%% \end{frame}
+  \item Ranges (C++20)\\
+    Correctly associate an iterator and a length
+  \begin{lstlisting}[language=C++]
+std::vector<int> v = ...;
+std::sort(v);
+  \end{lstlisting}
+  \item Zip Views (C++23?)
+  \begin{lstlisting}[language=C++]
+for(auto [v1, v2, v3] :
+  std::zip_view(range_1, range_2, range_3)) {...}
+  \end{lstlisting}
+  \end{itemize}
+\end{frame}
 
 \end{document}
